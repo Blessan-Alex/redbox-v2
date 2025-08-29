@@ -14,6 +14,29 @@ https://github.com/i-dot-ai/redbox-copilot/assets/8233643/e7984242-1403-4c93-9e6
 
 Please refer to the [DEVELOPER_SETUP.md](./docs/DEVELOPER_SETUP.md) for detailed instructions on setting up the project.
 
+## Quick Start
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/your-username/redbox.git
+   cd redbox
+   ```
+
+2. **Configure environment variables**
+   ```bash
+   cp .env.example .env
+   # Edit .env and add your LLM API key (e.g., GOOGLE_API_KEY=your_key_here)
+   ```
+
+3. **Start the application**
+   ```bash
+   docker compose up -d
+   ```
+
+4. **Access the application**
+   - Open http://localhost:8090 in your browser
+   - The application will be ready when all containers show as "healthy"
+
 # Codespace
 
 For a quick start, you can use GitHub Codespaces to run the project in a cloud-based development environment. Click the button below to open the project in a new Codespace.
@@ -71,6 +94,32 @@ System-wide, static, settings are defined [Settings.py](redbox-core/redbox/model
 
 Dynamic, per-request, settings are defined in [AISettings.py](redbox-core/redbox/models/chain.py), these are set within the django-app,
 and can be changed by an administrator. This includes the LLM to use which by default will be GPT-4o.
+
+## LLM Providers
+
+Redbox supports multiple LLM providers:
+
+- **Google Gemini** (Recommended) - Set `GOOGLE_API_KEY` in your `.env` file
+- **OpenAI** - Set `OPENAI_API_KEY` in your `.env` file  
+- **Azure OpenAI** - Set `AZURE_OPENAI_MODEL`, `AZURE_OPENAI_API_KEY`, and `AZURE_OPENAI_ENDPOINT` in your `.env` file
+- **Anthropic Claude** - Set `ANTHROPIC_API_KEY` in your `.env` file (Not fully developed yet)
+
+For detailed instructions on migrating between LLM providers, see [GEMINI_MIGRATION.md](./docs/GEMINI_MIGRATION.md).
+
+### Model Configuration
+
+The specific model name (e.g., `gemini-2.0-flash`) is configured in the database, not in environment variables. You can change it through:
+
+**Django Admin Interface:**
+1. Access http://localhost:8090/admin/
+2. Go to "Redbox core" → "Chat LLM backends"
+3. Edit the default backend and change the "Name" field
+
+**Available Gemini Models:**
+- `gemini-2.0-flash` (Recommended - Fast and efficient)
+- `gemini-1.5-flash` (Good balance of speed and capability)
+- `gemini-1.5-pro` (More capable but slower)
+- `gemini-pro` (Original Gemini Pro model)
 
 # Contributing
 

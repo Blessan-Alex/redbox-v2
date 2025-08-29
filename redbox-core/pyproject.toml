@@ -19,9 +19,8 @@ langchain_openai = ">0.1.21"
 tiktoken = "^0.7.0"
 pydantic-settings = "^2.3.4"
 langchain-aws = "^0.2.3"
+langchain-google-genai = "^2.1.10"
 
-
-[tool.poetry.group.dev.dependencies]
 
 [build-system]
 requires = ["poetry-core"]

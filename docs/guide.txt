@@ -1,0 +1,101 @@
+Setting Up RedBox
+1. Environment Setup
+docker --version – Verified Docker installation
+
+
+git --version – Confirmed Git is working
+
+
+python3 --version – Checked Python 3.12
+
+
+node --version & npm --version – Verified Node.js
+
+
+poetry --version – Checked Poetry (initially failed, then installed)
+
+
+
+2. Poetry Installation
+curl -sSL https://install.python-poetry.org | python3 - – Installed Poetry package manager
+
+
+export PATH="$HOME/.local/bin:$PATH" – Added Poetry to PATH
+
+
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc – Made Poetry permanent
+
+
+
+3. Project Setup
+cp .env.example .env – Created environment configuration file
+
+
+poetry install – Installed all Python dependencies (root project)
+
+
+
+4. Docker Operations
+docker compose build – Built all Docker images (django-app, lit-ssr, redbox-worker)
+
+
+docker compose down – Cleaned up existing containers
+
+
+docker compose up -d db minio – Started PostgreSQL database and MinIO object storage
+
+
+docker compose up -d django-app – Started Django web application
+
+
+docker compose ps – Checked status of all running containers
+
+
+
+5. Database & User Setup
+docker compose run --rm django-app venv/bin/django-admin createsuperuser – Created admin user (john doe123@gmail.com)
+
+
+
+6. Logging & Debugging
+docker compose logs django-app – Viewed Django application logs
+
+
+docker compose logs django-app | findstr "magic_link" – Searched for magic link URLs
+
+
+docker compose logs django-app --tail 50 – Viewed recent logs
+
+
+
+7. MinIO Setup
+docker compose exec minio mc ls data/ – Checked MinIO bucket status
+
+
+
+✅ Current Status
+PostgreSQL, MinIO, Django app running
+
+
+Superuser created: johndoe123@gmail.com
+
+
+.env file configured
+
+
+Poetry dependencies installed
+
+
+
+🚀 Next Steps
+MinIO bucket creation: Create redbox-storage-dev bucket via web interface – http://localhost:9001
+
+
+Magic link authentication: Trigger magic link generation by visiting – http://localhost:8090/log-in
+
+
+Application testing: Access main app at – http://localhost:8090
+
+
+
+

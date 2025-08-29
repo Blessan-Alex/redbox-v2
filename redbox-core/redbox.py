@@ -13,8 +13,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class ChatLLMBackend(BaseModel):
-    name: str = "gpt-4o"
-    provider: str = "azure_openai"
+    name: str = "gemini-2.0-flash"
+    provider: str = "google_genai"
     description: str | None = None
     context_window_size: int = 128_000
     model_config = {"frozen": True}
@@ -89,6 +89,11 @@ class RedboxState(BaseModel):
                 model_provider=self.chat_backend.provider,
                 location="europe-west1",
                 # europe-west1 = Belgium
+            )
+        elif self.chat_backend.provider == "google_genai":
+            return init_chat_model(
+                model=self.chat_backend.name,
+                model_provider=self.chat_backend.provider,
             )
         return init_chat_model(
             model=self.chat_backend.name,

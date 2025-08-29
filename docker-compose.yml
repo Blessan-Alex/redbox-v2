@@ -12,10 +12,10 @@ services:
     networks:
       - redbox-app-network
     env_file:
-      - path: tests/.env.integration
-        required: false
-      - path: .env
-        required: false
+      
+      - .env
+        
+    
     volumes:
       - /app/django_app/frontend/node_modules
       - ./django_app:/app/django_app/
@@ -39,15 +39,14 @@ services:
       - "3002:3002"
     restart: unless-stopped
     env_file:
-      - path: .env
-        required: false
+      - .env
+        
   db:
     image: postgres:13
-    env_file:
-      - path: tests/.env.integration
-        required: false
-      - path: .env
-        required: false
+    environment:
+      - POSTGRES_DB=redbox-core
+      - POSTGRES_USER=redbox-core
+      - POSTGRES_PASSWORD=insecure
     volumes:
       - local_postgres_data:/var/lib/postgresql/data:Z
     networks:
@@ -55,7 +54,7 @@ services:
     ports:
       - "5432:5432"
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready", "-U", "redbox-core", "-d", "db_prod" ]
+      test: [ "CMD-SHELL", "pg_isready", "-U", "redbox-core", "-d", "redbox-core" ]
       interval: 5s
       timeout: 30s
       retries: 24
@@ -73,10 +72,10 @@ services:
       dockerfile: django_app/Dockerfile
     command: "venv/bin/django-admin qcluster"
     env_file:
-      - path: tests/.env.integration
-        required: false
-      - path: .env
-        required: false
+      
+      -  .env
+       
+    
     depends_on:
       minio:
         condition: service_healthy
