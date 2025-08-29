@@ -223,3 +223,99 @@ django_app/tests/staticfiles
 infrastructure/aws/cleanup_lambda/*.zip
 infrastructure/aws/cleanup_lambda/layer/*
 
+# Large media files (consider using Git LFS)
+*.gif
+*.mp4
+*.avi
+*.mov
+*.wmv
+
+# Large data files
+*.jsonl
+notebooks/evaluation/data/
+
+# Additional environment files
+.env.local
+.env.production
+.env.staging
+
+# IDE and editor files
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Coverage reports
+.coverage
+htmlcov/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# PEP 582
+__pypackages__/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath
+*.sage.py
+
+# Spyder
+.spyderproject
+.spyproject
+
+# Rope
+.ropeproject
+
+# mkdocs
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre
+.pyre/
+
+# pytype
+.pytype/
+
+# Cython
+cython_debug/
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# Pre-commit cache
+.pre-commit-trivy-cache
+
+# Lambda files
+infrastructure/aws/cleanup_lambda/*.zip
+infrastructure/aws/cleanup_lambda/layer/*
+
