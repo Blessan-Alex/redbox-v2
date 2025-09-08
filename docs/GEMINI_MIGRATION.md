@@ -126,14 +126,87 @@ ANTHROPIC_API_KEY=your_api_key_here
 
 ## 📊 Method 4: Database Migration
 
-Create a Django migration to update the default backend:
-
+**Step 1: Create Migration File**
 ```bash
 # Create migration
-docker compose exec django-app venv/bin/django-admin makemigrations redbox_core --name update_llm_backend --empty
+docker compose exec django-app venv/bin/django-admin makemigrations redbox_core --name update_default_backend_to_gemini --empty
+```
 
-# Edit the migration file to update the model
-# Then run:
+**Step 2: Edit the Migration File**
+
+After creating the migration, you need to edit the generated file. The file will be located at:
+```
+django_app/redbox_app/redbox_core/migrations/0094_update_default_backend_to_gemini.py
+```
+
+**Replace the entire content** of this file with the following code:
+
+```python
+# Generated manually to update default backend to Gemini
+
+from django.db import migrations
+
+
+def update_default_backend_to_gemini(apps, schema_editor):
+    """Update the default ChatLLMBackend to use Gemini instead of Azure OpenAI."""
+    ChatLLMBackend = apps.get_model("redbox_core", "ChatLLMBackend")
+    
+    # Find the default backend
+    try:
+        default_backend = ChatLLMBackend.objects.get(is_default=True)
+        # Update it to use Gemini
+        default_backend.name = "gemini-2.0-flash"
+        default_backend.provider = "google_genai"
+        default_backend.description = "Google Gemini 2.0 Flash model"
+        default_backend.context_window_size = 128000
+        default_backend.save()
+        print(f"Updated default backend to: {default_backend.name} ({default_backend.provider})")
+    except ChatLLMBackend.DoesNotExist:
+        # Create a new Gemini backend if none exists
+        ChatLLMBackend.objects.create(
+            name="gemini-2.0-flash",
+            provider="google_genai",
+            description="Google Gemini 2.0 Flash model",
+            is_default=True,
+            enabled=True,
+            context_window_size=128000,
+            rate_limit=1000000
+        )
+        print("Created new Gemini backend as default")
+
+
+def reverse_update_default_backend_to_gemini(apps, schema_editor):
+    """Reverse the migration - set back to Azure OpenAI."""
+    ChatLLMBackend = apps.get_model("redbox_core", "ChatLLMBackend")
+    
+    try:
+        default_backend = ChatLLMBackend.objects.get(is_default=True)
+        default_backend.name = "gpt-4o"
+        default_backend.provider = "azure_openai"
+        default_backend.description = "Azure OpenAI GPT-4o model"
+        default_backend.context_window_size = 128000
+        default_backend.save()
+        print(f"Reverted default backend to: {default_backend.name} ({default_backend.provider})")
+    except ChatLLMBackend.DoesNotExist:
+        pass
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('redbox_core', '0093_chatmessage_time_to_first_token'),
+    ]
+
+    operations = [
+        migrations.RunPython(
+            update_default_backend_to_gemini,
+            reverse_update_default_backend_to_gemini
+        ),
+    ]
+```
+
+**Step 3: Run the Migration**
+```bash
 docker compose exec django-app venv/bin/django-admin migrate
 ```
 
@@ -187,80 +260,7 @@ print(f'Default: {backend.is_default}')
 
 The Django Admin Interface (Method 1) is the easiest and most user-friendly way to change models, while Django Shell (Method 2) is great for automation and scripting.
 
-## Step 4: Update Database Configuration (If using Method 4)
-
-### 4.1 Create Migration to Update Default Backend
-
-Create a new Django migration to update the default ChatLLMBackend:
-
-```bash
-docker compose exec django-app venv/bin/django-admin makemigrations redbox_core --name update_default_backend_to_gemini --empty
-```
-
-### 4.2 Complete Migration Script
-
-Here's the complete migration script to update the default backend to Gemini:
-
-```python
-# Generated manually to update default backend to Gemini
-
-from django.db import migrations
-
-
-def update_default_backend_to_gemini(apps, schema_editor):
-    """Update the default ChatLLMBackend to use Gemini instead of Azure OpenAI."""
-    ChatLLMBackend = apps.get_model("redbox_core", "ChatLLMBackend")
-    
-    # Find the default backend
-    try:
-        default_backend = ChatLLMBackend.objects.get(is_default=True)
-        # Update it to use Gemini
-        default_backend.name = "gemini-2.0-flash"  # Can be: gemini-2.0-flash, gemini-1.5-flash, gemini-1.5-pro, gemini-pro
-        default_backend.provider = "google_genai"
-        default_backend.description = "Google Gemini 2.0 Flash model"
-        default_backend.context_window_size = 128000
-        default_backend.save()
-        print(f"Updated default backend to: {default_backend.name} ({default_backend.provider})")
-    except ChatLLMBackend.DoesNotExist:
-        print("No default backend found")
-
-
-def reverse_update_default_backend_to_gemini(apps, schema_editor):
-    """Reverse the migration - change back to Azure OpenAI."""
-    ChatLLMBackend = apps.get_model("redbox_core", "ChatLLMBackend")
-    
-    try:
-        default_backend = ChatLLMBackend.objects.get(is_default=True)
-        default_backend.name = "gpt-4o"
-        default_backend.provider = "azure_openai"
-        default_backend.description = "Azure OpenAI GPT-4o model"
-        default_backend.context_window_size = 128000
-        default_backend.save()
-        print(f"Reverted default backend to: {default_backend.name} ({default_backend.provider})")
-    except ChatLLMBackend.DoesNotExist:
-        print("No default backend found")
-
-
-class Migration(migrations.Migration):
-    dependencies = [
-        ('redbox_core', '0093_previous_migration'),  # Replace with actual previous migration
-    ]
-
-    operations = [
-        migrations.RunPython(
-            update_default_backend_to_gemini,
-            reverse_update_default_backend_to_gemini
-        ),
-    ]
-```
-
-### 4.3 Run the Migration
-
-```bash
-docker compose exec django-app venv/bin/django-admin migrate redbox_core 0094
-```
-
-## Step 5: Update redbox.py Implementation
+## Step 4: Update redbox.py Implementation
 
 You need to update the `redbox.py` file to use the gemini implementation compared to the old one. Here's the updated version:
 
@@ -556,9 +556,9 @@ async def run_async(
 4. **Streaming**: Updated to use `astream_events` instead of `astream`
 5. **Imports**: Added `langchain.chat_models.init_chat_model` and removed `langchain_openai.ChatOpenAI`
 
-## Step 6: Restart Services
+## Step 5: Restart Services
 
-### 6.1 Restart Django Container
+### 5.1 Restart Django Container
 
 After updating environment variables, restart the Django container to pick up changes:
 
@@ -567,7 +567,7 @@ docker compose down django-app
 docker compose up -d django-app
 ```
 
-### 6.2 Verify Configuration
+### 5.2 Verify Configuration
 
 Check that the environment variable is correctly set:
 
@@ -580,9 +580,9 @@ Expected output:
 GOOGLE_API_KEY=your_google_api_key_here
 ```
 
-## Step 7: Verify Migration
+## Step 6: Verify Migration
 
-### 7.1 Check Database Configuration
+### 6.1 Check Database Configuration
 
 Verify the default backend has been updated:
 
@@ -595,7 +595,7 @@ Expected output:
 Default backend: gemini-2.0-flash (google_genai)
 ```
 
-### 7.2 Test Chat Functionality
+### 6.2 Test Chat Functionality
 
 1. Access the Redbox application at `http://localhost:8090`
 2. Create a new chat or use an existing one
