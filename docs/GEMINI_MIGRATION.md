@@ -49,6 +49,9 @@ Replace or add the following environment variables in your `.env` file:
 
 # Add Google Gemini settings (REQUIRED)
 GOOGLE_API_KEY=your_google_api_key_here
+
+# Update Azure OpenAI model to use Gemini (if using Azure OpenAI setup)
+AZURE_OPENAI_MODEL=google/gemini-2.0-flash
 ```
 
 **Important**: 
@@ -62,10 +65,25 @@ After setting the `GOOGLE_API_KEY`, choose one of these four methods to complete
 
 ## 🎯 Method 1: Django Admin Interface (Recommended)
 
-1. Access Admin Panel: Go to http://localhost:8090/admin/
-2. Navigate to: "Redbox core" → "Chat LLM backends"
-3. Edit the default backend and change the model name
-4. Save changes
+**Detailed Steps:**
+
+1. **Access Admin Panel**: Go to http://localhost:8090/admin/
+2. **Login** with your Django admin credentials
+3. **Navigate to**: "Redbox core" → "Chat LLM backends"
+4. **Find the default backend** (usually marked as "Default" or with `is_default=True`)
+5. **Click "Edit"** on the default backend
+6. **Update the following fields**:
+   - **Model Name**: Change to `gemini-2.0-flash`
+   - **Provider**: Change to `google_genai`
+   - **Description**: Update to "Google Gemini 2.0 Flash model"
+   - **Context Window Size**: Set to `128000` (tokens)
+7. **Click "Save"** to apply changes
+
+**What to change in Django Admin:**
+- `name` field: `gemini-2.0-flash`
+- `provider` field: `google_genai`
+- `description` field: `Google Gemini 2.0 Flash model`
+- `context_window_size` field: `128000`
 
 ## 🛠️ Method 2: Django Shell Commands
 
@@ -81,7 +99,7 @@ print(f'Current: {backend.name}')
 docker compose exec django-app venv/bin/django-admin shell -c "
 from redbox_app.redbox_core.models import ChatLLMBackend
 backend = ChatLLMBackend.objects.get(is_default=True)
-backend.name = 'gemini-1.5-flash'
+backend.name = 'gemini-2.0-flash'
 backend.save()
 print(f'Updated to: {backend.name}')
 "
