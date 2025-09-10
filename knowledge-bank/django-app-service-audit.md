@@ -15,7 +15,7 @@ The Django App Service is the **primary microservice** in the Redbox system, ser
 - **Docker Image**: `django-app:latest`
 - **Lines of Code**: ~15,000+ (estimated)
 - **Dependencies**: 50+ Python packages, 10+ Node.js packages
-- **Database Models**: 15+ core models
+- **Database Models**: 5 core models (User, Chat, ChatMessage, File, ChatLLMBackend, DepartmentBusinessUnit)
 - **API Endpoints**: 20+ REST endpoints
 - **Web Components**: 20+ Lit-based components
 
@@ -25,26 +25,27 @@ The Django App Service is the **primary microservice** in the Redbox system, ser
 
 ### **High-Level Architecture Diagram**
 
+```mermaid
 graph TB
     subgraph DjangoApp
-        UI[Web UI / Lit Components]
-        TEMPLATES[Jinja2 Templates]
-        STATIC[Static Assets (CSS, JS, Images)]
-        VIEWS[Django Views / API Endpoints]
-        MODELS[Django Models / ORM]
-        MIDDLEWARE[Middleware (Auth, Security)]
-        WORKER[Worker Service / File Processing]
-        QUEUE[Django-Q Task Queue]
-        WEBSOCKET[WebSocket Consumer / Chat Handler]
-        ASGI[ASGI Server (Daphne)]
+        UI["Web UI / Lit Components"]
+        TEMPLATES["Jinja2 Templates"]
+        STATIC["Static Assets (CSS, JS, Images)"]
+        VIEWS["Django Views / API Endpoints"]
+        MODELS["Django Models / ORM"]
+        MIDDLEWARE["Middleware (Auth, Security)"]
+        WORKER["Worker Service / File Processing"]
+        QUEUE["Django-Q Task Queue"]
+        WEBSOCKET["WebSocket Consumer / Chat Handler"]
+        ASGI["ASGI Server (Daphne)"]
     end
 
     subgraph ExternalServices
-        DB[(PostgreSQL: User Data, Chat History)]
-        STORAGE[(MinIO/S3: File Storage)]
-        SEARCH[(Elasticsearch: Vector Database)]
-        REDIS[(Redis: WebSocket Channels)]
-        LLM[LLM APIs (Gemini / OpenAI)]
+        DB[("PostgreSQL: User Data, Chat History")]
+        STORAGE[("MinIO/S3: File Storage")]
+        SEARCH[("Elasticsearch: Vector Database")]
+        REDIS[("Redis: WebSocket Channels")]
+        LLM["LLM APIs (Gemini / OpenAI)"]
     end
 
     UI --> VIEWS
@@ -60,6 +61,7 @@ graph TB
     WEBSOCKET --> REDIS
     WEBSOCKET --> LLM
     WORKER --> LLM
+```
 
 
 ### **Service Communication Flow**
@@ -143,30 +145,30 @@ django_app/
 ```mermaid
 graph TD
     subgraph DjangoApp
-        A[Dockerfile] --> B[Multi-stage Build]
-        C[manage.py] --> D[Django Management]
-        E[start.sh] --> F[Container Startup]
-        G[health.sh] --> H[Health Check]
-        I[package.json] --> J[Node.js Dependencies]
-        K[src/js/] --> L[Web Components]
-        M[src/css/] --> N[SCSS Styles]
-        O[tests-web-components/] --> P[Component Tests]
-        Q[settings.py] --> R[Django Configuration]
-        S[urls.py] --> T[URL Routing]
-        U[wsgi.py] --> V[WSGI Entry Point]
-        W[asgi.py] --> X[ASGI Entry Point]
-        Y[routing.py] --> Z[WebSocket Routing]
-        AA[base.html] --> BB[Base Template]
-        CC[chats.html] --> DD[Chat Interface]
-        EE[homepage.html] --> FF[Landing Page]
-        GG[models.py] --> HH[Database Models]
-        II[views/] --> JJ[API Endpoints]
-        KK[migrations/] --> LL[DB Migrations]
-        MM[consumers.py] --> NN[WebSocket Handlers]
-        OO[admin.py] --> PP[Admin Interface]
-        QQ[worker.py] --> RR[Background Processing]
-        SS[static/] --> TT[Static Assets]
-        UU[tests/] --> VV[Test Suite]
+        A["Dockerfile"] --> B["Multi-stage Build"]
+        C["manage.py"] --> D["Django Management"]
+        E["start.sh"] --> F["Container Startup"]
+        G["health.sh"] --> H["Health Check"]
+        I["package.json"] --> J["Node.js Dependencies"]
+        K["src/js/"] --> L["Web Components"]
+        M["src/css/"] --> N["SCSS Styles"]
+        O["tests-web-components/"] --> P["Component Tests"]
+        Q["settings.py"] --> R["Django Configuration"]
+        S["urls.py"] --> T["URL Routing"]
+        U["wsgi.py"] --> V["WSGI Entry Point"]
+        W["asgi.py"] --> X["ASGI Entry Point"]
+        Y["routing.py"] --> Z["WebSocket Routing"]
+        AA["base.html"] --> BB["Base Template"]
+        CC["chats.html"] --> DD["Chat Interface"]
+        EE["homepage.html"] --> FF["Landing Page"]
+        GG["models.py"] --> HH["Database Models"]
+        II["views/"] --> JJ["API Endpoints"]
+        KK["migrations/"] --> LL["DB Migrations"]
+        MM["consumers.py"] --> NN["WebSocket Handlers"]
+        OO["admin.py"] --> PP["Admin Interface"]
+        QQ["worker.py"] --> RR["Background Processing"]
+        SS["static/"] --> TT["Static Assets"]
+        UU["tests/"] --> VV["Test Suite"]
     end
 ```
 
@@ -212,6 +214,17 @@ django-permissions-policy = "^4.21.0"
 # Frontend Integration
 django-libsass = "^0.9"            # SCSS compilation
 whitenoise = "^6.6.0"              # Static file serving
+
+# Additional Dependencies
+jinja2 = "^3.1.5"                  # Template engine
+django-environ = "^0.11.2"         # Environment management
+watchdog = {extras = ["watchmedo"], version = "^4.0.2"}  # File watching
+django-single-session = "^0.2.0"   # Session management
+django-gov-notify = "^0.5.0"       # Government notifications
+websockets = "^12.0"               # WebSocket support
+django-import-export = "^4.0"      # Data import/export
+django-adminplus = "^0.6"          # Enhanced admin
+django-waffle = "^4.1.0"           # Feature flags
 ```
 
 ### **Node.js Dependencies (frontend/package.json)**
@@ -227,7 +240,14 @@ whitenoise = "^6.6.0"              # Static file serving
   "devDependencies": {
     "@parcel/transformer-sass": "^2.12.0",  // SCSS processing
     "@playwright/test": "^1.48.2",          // Component testing
-    "parcel": "^2.12.0"                     // Build tool
+    "@types/dompurify": "^3.0.5",           // TypeScript types
+    "@types/showdown": "^2.0.6",            // TypeScript types
+    "dotenv": "^16.4.5",                    // Environment variables
+    "parcel": "^2.12.0",                    // Build tool
+    "parcel-reporter-static-files-copy": "^1.5.3",  // Static file copying
+    "postcss": "^8.4.39",                   // CSS processing
+    "postcss-url": "^10.1.3",               // URL processing
+    "url": "^0.11.3"                        // URL utilities
   }
 }
 ```
@@ -237,33 +257,33 @@ whitenoise = "^6.6.0"              # Static file serving
 ```mermaid
 graph TB
     subgraph PythonDeps
-        DJANGO[Django 5.1]
-        DRF[Django REST Framework]
-        CHANNELS[Channels + Daphne]
-        PSYCOPG[psycopg2-binary]
-        STORAGES[django-storages]
-        BOTO3[boto3]
-        DJANGO_Q[django-q2]
-        CRONITER[croniter]
-        MARKITDOWN[markitdown]
-        TESSERACT[pytesseract]
-        PDF2IMAGE[pdf2image]
-        ELASTICSEARCH[elasticsearch]
-        LANGCHAIN[langchain-google-*]
-        MAGIC_LINK[django-magic-link]
-        CSP[django-csp]
-        SENTRY[sentry-sdk]
+        DJANGO["Django 5.1"]
+        DRF["Django REST Framework"]
+        CHANNELS["Channels + Daphne"]
+        PSYCOPG["psycopg2-binary"]
+        STORAGES["django-storages"]
+        BOTO3["boto3"]
+        DJANGO_Q["django-q2"]
+        CRONITER["croniter"]
+        MARKITDOWN["markitdown"]
+        TESSERACT["pytesseract"]
+        PDF2IMAGE["pdf2image"]
+        ELASTICSEARCH["elasticsearch"]
+        LANGCHAIN["langchain-google-*"]
+        MAGIC_LINK["django-magic-link"]
+        CSP["django-csp"]
+        SENTRY["sentry-sdk"]
     end
     
     subgraph NodeDeps
-        GOVUK[govuk-frontend]
-        IAI_DS[i.ai-design-system]
-        LIT[lit]
-        PARCEL[parcel]
-        SASS[@parcel/transformer-sass]
-        PLAYWRIGHT[@playwright/test]
-        MERMAID[mermaid]
-        POSTHOG[posthog-js]
+        GOVUK["govuk-frontend"]
+        IAI_DS["i.ai-design-system"]
+        LIT["lit"]
+        PARCEL["parcel"]
+        SASS["@parcel/transformer-sass"]
+        PLAYWRIGHT["@playwright/test"]
+        MERMAID["mermaid"]
+        POSTHOG["posthog-js"]
     end
     
     DJANGO --> DRF
@@ -298,13 +318,26 @@ graph TB
 # docker-compose.yml
 django-app:
   image: django-app:latest
+  build:
+    context: .
+    dockerfile: ./django_app/Dockerfile
   ports:
     - "8090:8090"
   depends_on:
-    - db (PostgreSQL)
-    - minio (Object storage)
+    db:
+      condition: service_healthy
+    minio:
+      condition: service_healthy
   healthcheck:
-    test: curl --fail http://localhost:8090/health/
+    test: curl --fail http://localhost:8090/health/ || exit 1
+    interval: 5s
+    timeout: 30s
+    retries: 24
+    start_period: 60s
+  networks:
+    - redbox-app-network
+  env_file:
+    - .env
 ```
 
 ### **Django Project Structure**
@@ -367,21 +400,21 @@ CHANNEL_LAYERS = {
 ```mermaid
 graph TB
     subgraph DockerContainer
-        NODE_STAGE[Node.js Stage<br/>Frontend Build]
-        POETRY_STAGE[Poetry Stage<br/>Python Dependencies]
-        RUNTIME_STAGE[Runtime Stage<br/>Final Image]
-        START[start.sh] --> MIGRATE[Django Migrate]
-        MIGRATE --> COLLECT[Collect Static]
-        COLLECT --> ADMIN[Create Admin User]
-        ADMIN --> DAPHNE[Daphne ASGI Server<br/>Port 8090]
-        HEALTH[health.sh] --> CHECK[Health Check]
-        CHECK --> CURL[curl /health/]
+        NODE_STAGE["Node.js Stage<br/>Frontend Build"]
+        POETRY_STAGE["Poetry Stage<br/>Python Dependencies"]
+        RUNTIME_STAGE["Runtime Stage<br/>Final Image"]
+        START["start.sh"] --> MIGRATE["Django Migrate"]
+        MIGRATE --> COLLECT["Collect Static"]
+        COLLECT --> ADMIN["Create Admin User"]
+        ADMIN --> DAPHNE["Daphne ASGI Server<br/>Port 8090"]
+        HEALTH["health.sh"] --> CHECK["Health Check"]
+        CHECK --> CURL["curl /health/"]
     end
     
     subgraph ExternalDeps
-        DB[(PostgreSQL<br/>Port 5432)]
-        MINIO[(MinIO<br/>Port 9000/9001)]
-        REDIS[(Redis<br/>WebSocket Channels)]
+        DB[("PostgreSQL<br/>Port 5432")]
+        MINIO[("MinIO<br/>Port 9000/9001")]
+        REDIS[("Redis<br/>WebSocket Channels")]
     end
     
     DAPHNE --> DB
@@ -474,7 +507,7 @@ erDiagram
 
 ### **Key Models (models.py)**
 
-#### **1. User Model** (Lines 114-300)
+#### **1. User Model** (Lines 100-300)
 ```python
 class User(BaseUser, UUIDPrimaryKeyBase):
     # Government-specific fields
@@ -508,6 +541,7 @@ class File(UUIDPrimaryKeyBase):
     token_count = models.PositiveIntegerField()
     chat = models.ForeignKey(Chat, on_delete=models.CASCADE)
     ingest_error = models.TextField(max_length=2048)
+    last_referenced = models.DateTimeField(null=True, blank=True)
     
     def ingest(self, sync: bool = False):
         """Queue file for background processing"""
@@ -515,7 +549,7 @@ class File(UUIDPrimaryKeyBase):
         # ... task handling logic
 ```
 
-#### **3. Chat Model** (Lines 300-400)
+#### **3. Chat Model** (Lines 356-400)
 ```python
 class Chat(UUIDPrimaryKeyBase):
     name = models.CharField(max_length=255)
@@ -528,7 +562,7 @@ class Chat(UUIDPrimaryKeyBase):
         # ... conversion logic
 ```
 
-#### **4. ChatMessage Model** (Lines 400-450)
+#### **4. ChatMessage Model** (Lines 575-600)
 ```python
 class ChatMessage(UUIDPrimaryKeyBase):
     class Role(models.TextChoices):
@@ -541,6 +575,7 @@ class ChatMessage(UUIDPrimaryKeyBase):
     rating = models.IntegerField(null=True, blank=True)
     rating_text = models.TextField(blank=True)
     token_count = models.PositiveIntegerField(null=True)
+    time_to_first_token = models.FloatField(null=True, blank=True)
 ```
 
 ### **API Endpoints Architecture**
@@ -548,40 +583,40 @@ class ChatMessage(UUIDPrimaryKeyBase):
 ```mermaid
 graph TB
     subgraph AuthEndpoints
-        A1[POST /log-in/] --> A2[Magic Link Auth]
-        A3[GET /log-in-link-sent/] --> A4[Auth Status]
-        A5[POST /sign-up-page-*] --> A6[User Registration]
+        A1["POST /log-in/"] --> A2["Magic Link Auth"]
+        A3["GET /log-in-link-sent/"] --> A4["Auth Status"]
+        A5["POST /sign-up-page-*"] --> A6["User Registration"]
     end
     
     subgraph ChatEndpoints
-        C1[GET /chats/] --> C2[List User Chats]
-        C3[GET /chats/{id}/] --> C4[Chat Details]
-        C5[POST /chats/{id}/upload] --> C6[File Upload]
-        C7[DELETE /chats/{id}/remove-doc/{doc_id}] --> C8[Remove Document]
-        C9[POST /chats/{id}/message] --> C10[Send Message]
+        C1["GET /chats/"] --> C2["List User Chats"]
+        C3["GET /chats/id/"] --> C4["Chat Details"]
+        C5["POST /chats/id/upload"] --> C6["File Upload"]
+        C7["DELETE /chats/id/remove-doc/doc_id"] --> C8["Remove Document"]
+        C9["POST /chats/id/message"] --> C10["Send Message"]
     end
     
     subgraph APIEndpoints
-        API1[POST /api/v0/file/] --> API2[File Upload API]
-        API3[GET /api/v0/chat/] --> API4[Chat API]
-        API5[POST /ratings/{message_id}/] --> API6[Rate Message]
+        API1["POST /api/v0/file/"] --> API2["File Upload API"]
+        API3["GET /api/v0/chat/"] --> API4["Chat API"]
+        API5["POST /ratings/message_id/"] --> API6["Rate Message"]
     end
     
     subgraph UtilityEndpoints
-        U1[GET /health/] --> U2[Health Check]
-        U3[GET /file-status/] --> U4[File Processing Status]
-        U5[GET /demographics/] --> U6[User Demographics]
-        U7[GET /download-metrics/] --> U8[Analytics Data]
+        U1["GET /health/"] --> U2["Health Check"]
+        U3["GET /file-status/"] --> U4["File Processing Status"]
+        U5["GET /demographics/"] --> U6["User Demographics"]
+        U7["GET /download-metrics/"] --> U8["Analytics Data"]
     end
     
     subgraph AdminEndpoints
-        AD1[GET /admin/] --> AD2[Django Admin]
+        AD1["GET /admin/"] --> AD2["Django Admin"]
     end
     
     subgraph TrainingEndpoints
-        T1[GET /training/] --> T2[Training Welcome]
-        T3[GET /training/chat] --> T4[Training Chat]
-        T5[GET /training/documents] --> T6[Training Documents]
+        T1["GET /training/"] --> T2["Training Welcome"]
+        T3["GET /training/chat"] --> T4["Training Chat"]
+        T5["GET /training/documents"] --> T6["Training Documents"]
     end
 ```
 
@@ -630,29 +665,29 @@ def health(request):
 
 ```mermaid
 flowchart TD
-    A[File Upload] --> B[Create File Record]
-    B --> C[Queue Processing Task]
-    C --> D[Worker Picks Up Task]
-    D --> E{File Type?}
+    A["File Upload"] --> B["Create File Record"]
+    B --> C["Queue Processing Task"]
+    C --> D["Worker Picks Up Task"]
+    D --> E{"File Type?"}
     
-    E -->|Image Files| F[OCR Processing<br/>pytesseract]
-    E -->|Documents| G[Markitdown Processing<br/>PDF/Word/Excel]
+    E -->|"Image Files"| F["OCR Processing<br/>pytesseract"]
+    E -->|"Documents"| G["Markitdown Processing<br/>PDF/Word/Excel"]
     
-    F --> H[Extract Text Content]
+    F --> H["Extract Text Content"]
     G --> H
-    H --> I[Sanitize Text]
-    I --> J[Count Tokens]
-    J --> K[Update File Status]
-    K --> L[Generate Embeddings]
-    L --> M[Store in Elasticsearch]
-    M --> N[Complete Processing]
+    H --> I["Sanitize Text"]
+    I --> J["Count Tokens"]
+    J --> K["Update File Status"]
+    K --> L["Generate Embeddings"]
+    L --> M["Store in Elasticsearch"]
+    M --> N["Complete Processing"]
     
-    E -->|Error| O[Set Error Status]
-    O --> P[Log Error Message]
+    E -->|"Error"| O["Set Error Status"]
+    O --> P["Log Error Message"]
     
-    style A fill:#e1f5fe
-    style N fill:#c8e6c9
-    style O fill:#ffcdd2
+    style A fill:#2E86AB
+    style N fill:#A23B72
+    style O fill:#F18F01
 ```
 
 ### **Background Processing (worker.py:41-72)**
@@ -759,35 +794,35 @@ class ChatConsumer(AsyncWebsocketConsumer):
 ```mermaid
 graph TB
     subgraph FrontendBuild
-        PARCEL[Parcel.js] --> SASS[SCSS Processing]
-        PARCEL --> JS[JavaScript Bundling]
-        PARCEL --> ASSETS[Asset Optimization]
+        PARCEL["Parcel.js"] --> SASS["SCSS Processing"]
+        PARCEL --> JS["JavaScript Bundling"]
+        PARCEL --> ASSETS["Asset Optimization"]
     end
     
     subgraph TemplateSystem
-        JINJA2[Jinja2 Templates] --> BASE[base.html]
-        BASE --> CHATS[chats.html]
-        BASE --> HOME[homepage.html]
-        BASE --> AUTH[sign-in.html]
-        BASE --> TRAINING[training/*.html]
+        JINJA2["Jinja2 Templates"] --> BASE["base.html"]
+        BASE --> CHATS["chats.html"]
+        BASE --> HOME["homepage.html"]
+        BASE --> AUTH["sign-in.html"]
+        BASE --> TRAINING["training/*.html"]
     end
     
     subgraph WebComponents
-        LIT[Lit Framework] --> UPLOAD[DocumentUpload]
-        LIT --> CHAT[ChatController]
-        LIT --> STATUS[FileStatus]
-        LIT --> HISTORY[ChatHistory]
+        LIT["Lit Framework"] --> UPLOAD["DocumentUpload"]
+        LIT --> CHAT["ChatController"]
+        LIT --> STATUS["FileStatus"]
+        LIT --> HISTORY["ChatHistory"]
     end
     
     subgraph DesignSystem
-        GOVUK[GOV.UK Frontend] --> IAI[i.AI Design System]
-        IAI --> COMPONENTS[Custom Components]
+        GOVUK["GOV.UK Frontend"] --> IAI["i.AI Design System"]
+        IAI --> COMPONENTS["Custom Components"]
     end
     
     subgraph StaticAssets
-        CSS[SCSS Styles] --> COMPILED[Compiled CSS]
-        JS_MODULES[ES6+ Modules] --> BUNDLED[Bundled JS]
-        IMAGES[Images/Icons] --> OPTIMIZED[Optimized Assets]
+        CSS["SCSS Styles"] --> COMPILED["Compiled CSS"]
+        JS_MODULES["ES6+ Modules"] --> BUNDLED["Bundled JS"]
+        IMAGES["Images/Icons"] --> OPTIMIZED["Optimized Assets"]
     end
     
     PARCEL --> JINJA2
@@ -864,37 +899,37 @@ npm test               # Playwright component tests
 
 ```mermaid
 flowchart TD
-    A[User Interaction] --> B{Component Type?}
+    A["User Interaction"] --> B{"Component Type?"}
     
-    B -->|File Upload| C[DocumentUpload Component]
-    B -->|Chat Message| D[ChatController Component]
-    B -->|File Status| E[FileStatus Component]
-    B -->|Chat History| F[ChatHistory Component]
+    B -->|"File Upload"| C["DocumentUpload Component"]
+    B -->|"Chat Message"| D["ChatController Component"]
+    B -->|"File Status"| E["FileStatus Component"]
+    B -->|"Chat History"| F["ChatHistory Component"]
     
-    C --> G[Drag & Drop Handler]
-    C --> H[File Validation]
-    C --> I[Upload to Server]
+    C --> G["Drag & Drop Handler"]
+    C --> H["File Validation"]
+    C --> I["Upload to Server"]
     
-    D --> J[WebSocket Connection]
-    D --> K[Message Streaming]
-    D --> L[Real-time Updates]
+    D --> J["WebSocket Connection"]
+    D --> K["Message Streaming"]
+    D --> L["Real-time Updates"]
     
-    E --> M[Status Polling]
-    E --> N[Progress Display]
+    E --> M["Status Polling"]
+    E --> N["Progress Display"]
     
-    F --> O[Chat List Rendering]
-    F --> P[Chat Selection]
+    F --> O["Chat List Rendering"]
+    F --> P["Chat Selection"]
     
-    I --> Q[Background Processing]
-    J --> R[AI Response]
-    M --> S[File Processing Status]
-    O --> T[Chat Navigation]
+    I --> Q["Background Processing"]
+    J --> R["AI Response"]
+    M --> S["File Processing Status"]
+    O --> T["Chat Navigation"]
     
-    style A fill:#e3f2fd
-    style Q fill:#fff3e0
-    style R fill:#e8f5e8
-    style S fill:#fce4ec
-    style T fill:#f3e5f5
+    style A fill:#2E86AB
+    style Q fill:#F18F01
+    style R fill:#A23B72
+    style S fill:#C73E1D
+    style T fill:#6A4C93
 ```
 
 ---
@@ -906,21 +941,21 @@ flowchart TD
 ```mermaid
 graph TB
     subgraph DjangoApp
-        DJANGO[Django Application<br/>Port 8090]
+        DJANGO["Django Application<br/>Port 8090"]
     end
     
     subgraph ExternalServices
-        POSTGRES[(PostgreSQL<br/>Port 5432<br/>User Data & Chat History)]
-        MINIO[(MinIO/S3<br/>Port 9000/9001<br/>File Storage)]
-        ELASTIC[(Elasticsearch<br/>Vector Search & Embeddings)]
-        REDIS[(Redis<br/>WebSocket Channels & Caching)]
-        LLM[LLM APIs<br/>Google Gemini/OpenAI/Azure]
+        POSTGRES[("PostgreSQL<br/>Port 5432<br/>User Data & Chat History")]
+        MINIO[("MinIO/S3<br/>Port 9000/9001<br/>File Storage")]
+        ELASTIC[("Elasticsearch<br/>Vector Search & Embeddings")]
+        REDIS[("Redis<br/>WebSocket Channels & Caching")]
+        LLM["LLM APIs<br/>Google Gemini/OpenAI/Azure"]
     end
     
     subgraph InternalServices
-        WORKER[Worker Service<br/>Background Processing]
-        LIT_SSR[Lit-SSR Service<br/>Port 3002<br/>Server-side Rendering]
-        REDBOX_CORE[Redbox-Core Library<br/>AI Processing Logic]
+        WORKER["Worker Service<br/>Background Processing"]
+        LIT_SSR["Lit-SSR Service<br/>Port 3002<br/>Server-side Rendering"]
+        REDBOX_CORE["Redbox-Core Library<br/>AI Processing Logic"]
     end
     
     DJANGO --> POSTGRES
@@ -939,15 +974,15 @@ graph TB
     
     LIT_SSR --> DJANGO
     
-    style DJANGO fill:#e1f5fe
-    style POSTGRES fill:#c8e6c9
-    style MINIO fill:#fff3e0
-    style ELASTIC fill:#f3e5f5
-    style REDIS fill:#ffcdd2
-    style LLM fill:#e8f5e8
-    style WORKER fill:#fff8e1
-    style LIT_SSR fill:#fce4ec
-    style REDBOX_CORE fill:#e0f2f1
+    style DJANGO fill:#2E86AB
+    style POSTGRES fill:#A23B72
+    style MINIO fill:#F18F01
+    style ELASTIC fill:#6A4C93
+    style REDIS fill:#C73E1D
+    style LLM fill:#2E86AB
+    style WORKER fill:#F18F01
+    style LIT_SSR fill:#A23B72
+    style REDBOX_CORE fill:#6A4C93
 ```
 
 ### **External Services**
@@ -982,6 +1017,9 @@ OPENAI_API_KEY=your_key_here
 # Security
 DJANGO_SECRET_KEY=your_secret_key
 ENVIRONMENT=dev
+LOGIN_METHOD=magic_link
+ALLOW_SIGN_UPS=true
+DEBUG=false
 ```
 
 ---
