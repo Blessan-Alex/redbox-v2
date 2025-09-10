@@ -436,7 +436,7 @@ The service contains **one main Django app**: `redbox_core`
 
 ```mermaid
 erDiagram
-    User ||--o{ Chat : creates
+    User ||--o{ Chat : "creates"
     User {
         uuid id PK
         string email UK
@@ -451,8 +451,9 @@ erDiagram
         datetime modified_at
     }
     
-    Chat ||--o{ ChatMessage : contains
-    Chat ||--o{ File : has
+    Chat ||--o{ ChatMessage : "contains"
+    Chat ||--o{ File : "has"
+    ChatLLMBackend ||--o{ Chat : "powers"
     Chat {
         uuid id PK
         string name
@@ -471,6 +472,7 @@ erDiagram
         integer rating
         text rating_text
         integer token_count
+        float time_to_first_token
         datetime created_at
         datetime modified_at
     }
@@ -495,6 +497,8 @@ erDiagram
         string description
         integer context_window_size
         boolean display
+        boolean enabled
+        boolean is_default
         integer rate_limit
     }
     
