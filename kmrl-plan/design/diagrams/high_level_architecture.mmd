@@ -53,9 +53,9 @@ graph TB
     
     subgraph "Storage Layer"
         D1[MinIO/S3<br/>Original Files]
-        D2[PostgreSQL<br/>Metadata & Text]
+        D2[PostgreSQL<br/>Users, Chat History<br/>& File Metadata]
         D3[Redis<br/>Queue & Cache]
-        D4[OpenSearch<br/>Vector Database]
+        D4[OpenSearch<br/>Document Chunks<br/>& Embeddings]
     end
     
     subgraph "Processing Layer"
@@ -72,7 +72,6 @@ graph TB
         F1[Data Preprocessing]
         F2[Smart Chunking]
         F3[Embedding Generation<br/>OpenAI/All-MiniLM]
-        F4[Vector Storage<br/>OpenSearch HNSW]
     end
     
     subgraph "Intelligence Layer"
@@ -131,10 +130,10 @@ graph TB
     
     F1 --> F2
     F2 --> F3
-    F3 --> F4
+    F3 --> D4
     
-    F4 --> G1
-    F4 --> G4
+    D4 --> G1
+    D4 --> G4
     G1 --> G2
     G1 --> G3
     G4 --> G5
